@@ -33,6 +33,6 @@ Modyfikacja powyższego zadania. Zakładamy, że kopiowany plik jest plikiem tek
 Kolejna modyfikacja: popraw program tak, aby i znaki '\n', i dwubajtowe sekwencje złożone ze znaku '\r' i następującego po nim znaku '\n' były traktowane jako terminatory linii.
 
 ## Źródła
-Autor zadań: Dr. Wojciech Palacz
+Autor zadań: Dr. Wojciech Palacz\
 Link do strony: https://users.uj.edu.pl/~palacz/ 
 
