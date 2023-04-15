@@ -6,7 +6,7 @@
 #include <sys/time.h>
 #include <signal.h>
 
-// wersja 3 - póki co najlepsza
+// wersja 3 
 
 #define ROZMIAR_BUFORA 1024
 
@@ -32,32 +32,24 @@ bool walidacja_danych(char bufor[], int odebrano)
     }
 
     
-    for(; i < odebrano; i = i+2)
+    for(; bufor[i] != '\r'; i++)
     {
-        while(bufor[i] != '\r')
+        if((bufor[i] == '+' && bufor[i + 1] == '+') || (bufor[i] == '-' && bufor[i + 1] == '-') || (bufor[i] == '-' && bufor[i+1] == '+') || (bufor[i] == '+' && bufor[i+1] == '-'))
         {
-            if((bufor[i] == '+' && bufor[i + 1] == '+') || (bufor[i] == '-' && bufor[i + 1] == '-') || (bufor[i] == '-' && bufor[i+1] == '+') || (bufor[i] == '+' && bufor[i+1] == '-'))
-            {
-                cout<< "LOL 1 "<< endl;
-                return true;
-                break;
-            }
-
-            if((bufor[i] < 48 || bufor[i] > 57) && bufor[i] != '+' && bufor[i] != '-' )
-            {
-                cout<< "LOL 2 "<< endl;
-                return true;
-                break;
-
-            }
-
-            i++;
+            return true;
+            break;
         }
 
+        if((bufor[i] < 48 || bufor[i] > 57) && bufor[i] != '+' && bufor[i] != '-')
+        {
+            return true;
+            break;
+
+        }
 
     }
 
- 
+
 
     return false;
 
@@ -111,8 +103,6 @@ void obliczanie_wyniku(int gniazdko_klienta)
 						znak = -1;
 				}
 
-                cout<<" WYNIK 1: "<< wynik<<endl;
-
                 i++;
             }
 
@@ -122,7 +112,6 @@ void obliczanie_wyniku(int gniazdko_klienta)
             if(!blad)
             {
                 wynik += liczba * znak;
-                cout<<" WYNIK 2: "<< wynik<<endl;
                 zwrot = sprintf(zwracany_wynik, "%d\r\n", wynik);
 
             }
@@ -139,7 +128,7 @@ void obliczanie_wyniku(int gniazdko_klienta)
 
             i = i + 2;
 
-           
+            wynik = 0;
         }
     }
 
