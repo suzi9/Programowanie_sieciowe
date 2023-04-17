@@ -5,56 +5,11 @@
 #include <iostream>
 #include <sys/time.h>
 #include <signal.h>
-
-// wersja 3 
+#include <climits>
 
 #define ROZMIAR_BUFORA 1024
 
 using namespace std;
-
-bool walidacja_danych(char bufor[], int odebrano)
-{
-    int i=0;
-
-    if(bufor[0] == '-' || bufor[0] == '+')
-    {
-        return true;
-    }
-
-    if(bufor[odebrano-2] == '-' || bufor[odebrano-2] == '+')
-    {
-        return true;
-    }
-
-    if(bufor[0] == '\r' && bufor[1] == '\n')
-    {
-        return true;
-    }
-
-    
-    for(; bufor[i] != '\r'; i++)
-    {
-        if((bufor[i] == '+' && bufor[i + 1] == '+') || (bufor[i] == '-' && bufor[i + 1] == '-') || (bufor[i] == '-' && bufor[i+1] == '+') || (bufor[i] == '+' && bufor[i+1] == '-'))
-        {
-            return true;
-            break;
-        }
-
-        if((bufor[i] < 48 || bufor[i] > 57) && bufor[i] != '+' && bufor[i] != '-')
-        {
-            return true;
-            break;
-
-        }
-
-    }
-
-
-
-    return false;
-
-}
-
 
 void obliczanie_wyniku(int gniazdko_klienta)
 {
@@ -64,11 +19,15 @@ void obliczanie_wyniku(int gniazdko_klienta)
     int digit = 0;
     int znak = 1;
     bool blad = false;
+    int odebrano=0;
+    int zwrot = 0;
+    char zwracany_wynik[ROZMIAR_BUFORA];
+    string ostateczny_wynik;
 
 
     while(true)
     {
-        int odebrano;
+        
         odebrano = read(gniazdko_klienta, bufor, ROZMIAR_BUFORA);
 
         if (odebrano == -1) 
@@ -79,19 +38,55 @@ void obliczanie_wyniku(int gniazdko_klienta)
 		
 		if (odebrano == 0)
 			break;
+        
+        // walidacja danych
+        if(bufor[0] == '-' || bufor[0] == '+')
+        {
+            blad = true;
+        }
 
-        blad = walidacja_danych(bufor, odebrano);
+        if(bufor[odebrano-2] == '-' || bufor[odebrano-2] == '+')
+        {
+            blad = true;
+        }
+
+        if(bufor[0] == '\r' && bufor[1] == '\n')
+        {
+            blad = true;
+        }
+        
 
         for(int i=0; i < odebrano; i++)
         {
-            while(bufor[i] != '\r')
+            // walidacja danych
+            if((bufor[i] == '+' && bufor[i + 1] == '+') || (bufor[i] == '-' && bufor[i + 1] == '-') || (bufor[i] == '-' && bufor[i+1] == '+') || (bufor[i] == '+' && bufor[i+1] == '-'))
             {
+                blad = true;
+            }
+             
+            
+            if((bufor[i] < 48 || bufor[i] > 57) && bufor[i] != '+' && bufor[i] != '-' && bufor[i] != '\r' && bufor[i] != '\n')
+            {
+                blad = true;
+            }
+
+           // jeśli dane są poprawne to zostaje obliczony wynik
+           if(!blad)
+           { 
+               
                 if (bufor[i] >= '0' && bufor[i] <= '9') 
                 {
 					digit = bufor[i] - '0';
 
-					 // aby zachować dziesiętność liczb, mnożymy ją przez 10
+					// aby zachować dziesiętność liczb, mnożymy ją przez 10
 					liczba = liczba * 10 + digit;
+
+                    // sprawdzamy czy liczby podane przez klienta sie przepelniaja
+					if(liczba < -1)
+					{
+						printf(" PRZEPELNIENIE LICZBY \n");
+						blad = true;
+					}
                 } 
                 else if (bufor[i] == '+' || bufor[i] == '-') 
                 {
@@ -102,34 +97,55 @@ void obliczanie_wyniku(int gniazdko_klienta)
 					 else
 						znak = -1;
 				}
+               
+               
+           }
 
-                i++;
-            }
-
-            char zwracany_wynik[ROZMIAR_BUFORA];
-            int zwrot = 0;
-
-            if(!blad)
+             // obsluga przepelnienia
+            if(wynik > INT_MAX - liczba)
             {
-                wynik += liczba * znak;
-                zwrot = sprintf(zwracany_wynik, "%d\r\n", wynik);
-
+                printf("PRZEPELNIENIE\n");
+                blad = true;
             }
-            else
+            else if(wynik < INT_MIN + liczba)
             {
-                zwrot = sprintf(zwracany_wynik, "%s", "ERROR\r\n");
+                printf("PRZEPELNIENIE\n");
+                blad = true;
             }
+           
+           // jeżeli napotkaliśmy na terminator \r\n to wpisujemy nasz wynik lub błąd do zmiennej ostateczny_wynik
+           if(bufor[i] == '\r' && bufor[i+1] == '\n')
+           {
+                if(!blad)
+                {
+                    wynik += liczba * znak;
+                    cout<< "WYNIK 2 : "<<wynik<< endl;
+                    zwrot = sprintf(zwracany_wynik, "%d", wynik);
+                    ostateczny_wynik += string(zwracany_wynik)+"\r\n";
 
-            if(write(gniazdko_klienta, zwracany_wynik, zwrot) == -1)
+                }
+                else
+                {
+                    ostateczny_wynik += "ERROR\r\n";
+                    blad = false; 
+                }
+
+                liczba = 0;
+                digit = 0;
+                znak = 1;
+                wynik = 0;
+
+           }
+
+        }  
+            // odsyłamy odpowiedź    
+            if(write(gniazdko_klienta, ostateczny_wynik.c_str(), ostateczny_wynik.length()) == -1)
             {
                 perror("Write error");
                 exit(EXIT_FAILURE);
             }
 
-            i = i + 2;
-
-            wynik = 0;
-        }
+            ostateczny_wynik.clear();
     }
 
 }
@@ -162,9 +178,14 @@ int main()
         perror("Bind error");
         exit(EXIT_FAILURE);
     }
-     
-    if(signal(SIGCHLD, SIG_IGN) == SIG_ERR)
+    
+    // SIGCHLD oznacza zakończenie procesu potomnego
+    // SIG_IN oznacza ignorowanie sygnału
+    // w funkcji signal pierwszy argument to numer sygnału który ma zostać obsłużony
+    // a drugi argument to wskaźnik do funkcji która ma być wywowałana w chwili przybycia sygnału
+    if(signal(SIGCHLD, SIG_IGN) == SIG_ERR) // dajemy znać jądru że nie będziemy prosić o statusy dzieci i od razu po zakończeniu działania można usunąć ich wpisy w tablicy procesów
     {
+        // zwracanie 1 oznacza że wystąpił błąd
         return 1;
     }
 
@@ -179,6 +200,7 @@ int main()
             exit(EXIT_FAILURE);
         }
 
+        // funkcja accept zwraca nam utworzone gniazdko dla klienta
         gniazdko_klienta = accept(gniazdko, (struct sockaddr*)&adres_klienta, &adres_klienta_rozmiar);
 
         if(gniazdko_klienta == -1)
@@ -188,26 +210,35 @@ int main()
         }
         else
         {
+            // INET_ADDRSTRLEN najwiekszy możliwy rozmiar string adresu IPv4 -> więc rezerwuje w pamięci 16 bajtów
             char buf[INET_ADDRSTRLEN];
 
-			if (inet_ntop(AF_INET, &adres.sin_addr, buf, sizeof(buf)) == NULL) {
+			// komunikat diagnostyczny ------------------------------------------------
+
+            // funkcja inet_ntop konwertuje internetowy adres binarny na tekstowy
+            // i umieszczka go w tablicy znaków 'buf'
+            if (inet_ntop(AF_INET, &adres.sin_addr, buf, sizeof(buf)) == NULL) {
 				perror("inet_ntop error");
 				strcpy(buf, "???");
 			}
+
 			cout << "Nowe połączenie " << buf << ":" << (unsigned int) ntohs(adres.sin_port) << endl;
 
         }
 
+        // ustawiam timeout na połączenie serwera z klientem
         struct timeval timeout;
         timeout.tv_sec = 5;
         timeout.tv_usec = 0;
 
+        // jako pierwszy arguemnt przyjmujemy gniazdko którego ten timeout ma dotyczyć
         if(setsockopt(gniazdko_klienta, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)) == -1)
         {
             perror("Setsockopt error");
             exit(EXIT_FAILURE);
         }
 
+        // tworzymy proces potomny który jest kopią procesu macierzystego
         pid_t pid = fork();
 
         if(pid == -1)
@@ -217,30 +248,33 @@ int main()
         }
         else if(pid == 0)
         {
-            // moja funkcja
+            // akcja dla procesu potomnego
             obliczanie_wyniku(gniazdko_klienta);
 
+            // zamykamy kopie gniazdka klienta które znajduję się w procesie potomnym
             if(close(gniazdko_klienta) == -1)
             {
                 perror("Close error");
                 exit(EXIT_FAILURE);
             }
 
+            // zamykamy kopie gniazdka połączeniowego które znajduję się w procesie potomnym
             if(close(gniazdko) == -1)
             {
                 perror("Close error");
                 exit(EXIT_FAILURE);
             }
 
+            // kończymy proces potomny
             exit(0);
         }
 
+        // zamykamy gniazdko klienta w procesie macierzystym
         if(close(gniazdko_klienta) == -1)
         {
             perror("Close error");
             exit(EXIT_FAILURE);
         }
-
 
     }
 
