@@ -273,7 +273,7 @@ int main()
     {
         cout<< "Oczekiwanie na połączenie" << endl;
 
-        if(listen(gniazdko, 10) == -1)
+        if(listen(gniazdko, 100) == -1)
         {
             perror("Listen error");
             close(gniazdko);
