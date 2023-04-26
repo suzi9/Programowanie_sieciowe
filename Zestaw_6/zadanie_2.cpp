@@ -16,16 +16,17 @@ string odwroc_string(string& str)
 {
     // pobieramy długość łańcucha
     int n = str.length();
-
+    
+    // wystarczy zrobić n/2  zamiań aby odwrócić string, np. dla stringa o długości 4 wystarczą dwie zamiany
     for (int i = 0; i < n / 2; i++)
     {
+        // jako pierwsze zamieniamy element znajdujący się z samego przodu z tym na samym końcu, i tak dalej do środka
         swap(str[i], str[n - i - 1]);
     }
 
     return str;
 }
  
-
 void obliczanie_wyniku(int gniazdko_klienta)
 {
     char bufor[ROZMIAR_BUFORA];
