@@ -40,7 +40,6 @@ void obliczanie_wyniku(int gniazdko_klienta)
     bool end = false;
     string do_odwrocenia;
     string tymczasowy_buf;
-    int rozmiar;
     char bufor_1[ROZMIAR_BUFORA];
 
 
