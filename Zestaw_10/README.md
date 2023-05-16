@@ -5,7 +5,9 @@ Proszę znaleźć stronę WWW zawierającą jakąś potencjalnie potrzebną info
 
 Radzę wykorzystać kod programu z poprzednich zajęć — ściąganie już w nim jest, trzeba tylko dodać ekstrahowanie interesujących nas danych.
 
-Wyłuskiwanie danych ze strony HTML jest dość kruchą techniką, bo witryna może nieoczekiwanie (dla nas) zmienić wygląd bądź zawartość. Biorąc to pod uwagę łatwo zauważyć, że podejście typu „zwróć bajty od 5078 do 5081” jest skazane na rychłą porażkę; „zwróć zawartość czwartego elementu <p> znajdującego się wewnątrz elementu <div> o identyfikatorze »temp«” jest lepsze. Warto postarać się o to, aby program zauważał nieoczekiwane bądź podejrzane sytuacje i je zgłaszał (np. jeśli w tym czwartym <p> jest ciąg znaków nie będący liczbą, to raczej nie jest to temperatura; jeśli znaleziona liczba wykracza poza przedział [-30, 40] to raczej nie jest to temperatura w stopniach Celsjusza).
+Wyłuskiwanie danych ze strony HTML jest dość kruchą techniką, bo witryna może nieoczekiwanie (dla nas) zmienić wygląd bądź zawartość. Biorąc to pod uwagę łatwo zauważyć, że podejście typu „zwróć bajty od 5078 do 5081” jest skazane na rychłą porażkę; „zwróć zawartość czwartego elementu < p > znajdującego się wewnątrz elementu < div > o identyfikatorze »temp«” jest lepsze. 
+
+Warto postarać się o to, aby program zauważał nieoczekiwane bądź podejrzane sytuacje i je zgłaszał (np. jeśli w tym czwartym <p> jest ciąg znaków nie będący liczbą, to raczej nie jest to temperatura; jeśli znaleziona liczba wykracza poza przedział [-30, 40] to raczej nie jest to temperatura w stopniach Celsjusza).
 
 Nawigację po treści strony ułatwia zbudowanie drzewa obiektów reprezentujących elementy strony HTML, tu ponownie polecam Państwa uwadze bibliotekę Beautiful Soup (Python) i jej odpowiednik JSoup (Java). Do sprawdzania, czy łańcuch znaków pasuje do zadanego wzorca dobrze nadają się wyrażenia regularne.
 
