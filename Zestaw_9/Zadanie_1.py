@@ -20,7 +20,7 @@ soup = BeautifulSoup(zawartosc_html, 'html.parser')
 
 temperatura = soup.find('div', {'class': 'weather-currently-temp-strict'})
 
-# Sprawzdamy czy udało się porabć zawartość div
+# Sprawzdamy czy udało się porbrać zawartość div
 if temperatura is None:
     blad = True
 
