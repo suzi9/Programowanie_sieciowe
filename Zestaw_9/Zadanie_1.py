@@ -20,41 +20,61 @@ soup = BeautifulSoup(zawartosc_html, 'html.parser')
 
 temperatura = soup.find('div', {'class': 'weather-currently-temp-strict'})
 
-# pobieramy wartość tekstową z bloku div
-string_temp = temperatura.text
+# Sprawzdamy czy udało się porabć zawartość div
+if temperatura is None:
+    blad = True
 
-# jeśli pierwszy znak to minus, to potem sprawdzam czy znak na pozycji 1 i 2 są liczbami
-if string_temp[0] == '-':
-    if string_temp[1].isnumeric() and string_temp[2].isnumeric():
-        blad = False
-        
-        # sprawdzamy czy pobrana treść na pewno mieści się w rozsądnym przedziale Celsjusza
-        sprawdzana_temp = string_temp[1] + string_temp[2]
+# Jeżeli bład nie jest prawdziwy to sprawdzamy i wyświetlamy wynik
+if blad != True:
 
-        if int(sprawdzana_temp) < -30 and int(sprawdzana_temp) > 40:
-            blad=True
-    else:
-        blad = True
-else:
-    # sprawdzam czy pierwsze dwa znaki są na pewno liczbami
-    if string_temp[0].isnumeric() and string_temp[1].isnumeric():
-        blad = False
-
-        # sprawdzamy czy pobrana treść na pewno mieści się w rozsądnym przedziale Celsjusza
-        sprawdzana_temp = string_temp[0] + string_temp[1]
-        
-        if int(sprawdzana_temp) < -30 and int(sprawdzana_temp) > 40:
-            blad=True
-    else:
-        blad = True
+    # pobieramy wartość tekstową z bloku div
+    string_temp = temperatura.text
     
-if blad:
-    print("Error")
+    # jeżeli pierwszy znak jest minusem 
+    if string_temp[0] == '-':
+        
+        n = len(string_temp)
 
-    # zwracamy informację o porażce
-    sys.exit(1)
-else:
+        # kiedy mamy do czynienia z temperaturą jednocyfrową to po odjęciu 2 znaków celsjusza będzie cyfra naszej temepratury
+        string_2 = string_temp[n-3]
+
+        # natomiast jeżeli okaże się że mamy dwucyfrową temperature
+        if string_temp[n-4].isnumeric():
+          
+            # to dopisujemy drugą cyfrę
+            string_2 = string_temp[n-4] + string_2
+        
+        # musimy dolepić z powrotem usunięty minus aby zrobić walidacje danych
+        string_2 = '-' + string_2
+
+        # sprawdzamy czy pobrana temperatura na pewno jest w celsjuszach i mieści się  rozsądnych granicach 
+        if int(string_2) < -30:
+            blad = True
+    
+    else: 
+
+        n = len(string_temp)
+
+        # kiedy mamy do czynienia z temperaturą jednocyfrową to po odjęciu 2 znaków celsjusza będzie cyfra naszej temepratury
+        string_2 = string_temp[n-3]
+
+        # natomiast jeżeli okaże się że mamy dwucyfrową temperature
+        if string_temp[n-4].isnumeric():
+            # to dopisujemy drugą cyfrę 
+            string_2 =  string_temp[n-4] + string_2
+
+        # sprawdzamy czy pobrana temperatura na pewno jest w celsjuszach i mieści się  rozsądnych granicach
+        if int(string_2) > 40:
+            blad = True
+    
+if blad != True:
     print("\nAktualna temperatura w Krakowie to:",string_temp, "\n")
 
     # Zwracamy informacje o sukcesie
     sys.exit(0)
+else:
+    # A jeżeli błąd jest prawdziwy (czyli istnieje) to zwracamy odrazu Error
+    print("Error")
+
+    # zwracamy informację o porażce
+    sys.exit(1)
